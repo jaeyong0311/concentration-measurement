@@ -1,0 +1,27 @@
+import serial
+
+# 시리얼 포트 설정
+ser = serial.Serial('/dev/serial0')  # 라즈베리 파이의 시리얼 포트에 연결되어 있는 경우
+
+# MH-Z19 CO2 센서로부터 데이터를 읽는 함수
+def read_co2():
+    ser.flushInput()
+    ser.write(b"\xFF\x01\x86\x00\x00\x00\x00\x00\x79")
+    response = ser.read(9)
+    if len(response) == 9 and response[0] == 0xFF:
+        co2 = (response[2] << 8) | response[3]
+        return co2
+    else:
+        return None
+
+# CO2 농도를 주기적으로 읽고 출력하는 메인 루프
+while True:
+    co2 = read_co2()
+    if co2 is not None:
+        print(f"CO2 농도: {co2} ppm")
+    else:
+        print("CO2 센서로부터 데이터를 읽을 수 없습니다.")
+    time.sleep(5)  # 5초마다 CO2 농도를 측정
+
+# 시리얼 포트 닫기
+ser.close()
